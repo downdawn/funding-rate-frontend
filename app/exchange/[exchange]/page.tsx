@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatVolume } from '@/lib/utils'
+import ExchangeDetailTable from '@/components/exchange-detail-table'
 
 const periodList = [
   { key: "hour", label: "小时" },
@@ -63,62 +64,7 @@ export default function ExchangeDetailPage() {
         </div>
       </header>
       <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>币对资金费率</CardTitle>
-            <CardDescription>展示该交易所下所有币对的多周期资金费率</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-8 text-muted-foreground">加载中...</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>币对</TableHead>
-                      <TableHead>成交量</TableHead>
-                      {periodList.map((p) => (
-                        <TableHead key={p.key}>{p.label}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((row) => (
-                      <TableRow key={row.symbol}>
-                        <TableCell className="font-medium text-purple-700 cursor-pointer hover:underline"
-                          onClick={() => window.location.href = `/pair/${encodeURIComponent(exchange)}/${encodeURIComponent(row.symbol)}`}
-                        >
-                          {row.symbol}
-                        </TableCell>
-                        <TableCell>{formatVolume(row.volume)}</TableCell>
-                        {periodList.map((p) => (
-                          <TableCell key={p.key}>
-                            {row.aggs && row.aggs[p.key] ? (
-                              <div>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div>{(row.aggs[p.key].total_rate * 100).toFixed(5)}%</div>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <div>周期: {row.aggs[p.key].period_value}</div>
-                                  </TooltipContent>
-                                </Tooltip>
-                                <div className="text-xs text-gray-400">APR: {(row.aggs[p.key].apr * 100).toFixed(2)}%</div>
-                              </div>
-                            ) : (
-                              <span className="text-gray-300">-</span>
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <ExchangeDetailTable exchange={exchange} />
       </div>
     </div>
   )
