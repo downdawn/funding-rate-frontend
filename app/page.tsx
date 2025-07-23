@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts"
+import { Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
 import { getExchanges, getSymbols, getFundingRates } from "@/lib/api"
 import { formatDateTime, formatToGmt8 } from "@/lib/utils"
 import PageLayout from "@/components/page-layout"
@@ -121,7 +121,13 @@ export default function CryptoFundingRates() {
     .slice(0, 20)
     .reverse()
     .map((rate) => ({
-      time: new Date(rate.timestamp).toLocaleDateString(),
+      time: new Date(rate.timestamp).toLocaleString("zh-CN", {
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
       rate: rate.funding_rate * 100,
     }))
 
@@ -357,9 +363,7 @@ export default function CryptoFundingRates() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="time" />
                       <YAxis />
-                      <ChartTooltip>
-                        <ChartTooltipContent />
-                      </ChartTooltip>
+                      <Tooltip content={<ChartTooltipContent />} />
                       <Line
                         type="monotone"
                         dataKey="rate"
