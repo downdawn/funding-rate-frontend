@@ -319,7 +319,7 @@ export default function CryptoFundingRates() {
                             {formatFundingRate(rate.funding_rate)}
                           </TableCell>
                           <TableCell>{getFundingRateBadge(rate.funding_rate) as React.ReactNode}</TableCell>
-                          <TableCell className="text-muted-foreground">{formatToGmt8(rate.funding_time)}</TableCell>
+                          <TableCell className="text-muted-foreground">{formatToGmt8(rate.timestamp)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>

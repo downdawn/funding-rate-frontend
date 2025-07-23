@@ -106,9 +106,9 @@ export default function PairDetailPage() {
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={history} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="funding_time" tickFormatter={v => v ? formatToGmt8(v) : ''} />
+                  <XAxis dataKey="funding_time" tickFormatter={v => v ? formatToGmt8((history.find(item => item.funding_time === v)?.timestamp ?? 0)) : ''} />
                   <YAxis domain={['auto', 'auto']} tickFormatter={v => (v * 100).toFixed(3) + '%'} />
-                  <Tooltip formatter={v => (v as number * 100).toFixed(5) + '%'} labelFormatter={l => formatToGmt8(l)} />
+                  <Tooltip formatter={v => (v as number * 100).toFixed(5) + '%'} labelFormatter={l => formatToGmt8((history.find(item => item.funding_time === l)?.timestamp ?? 0))} />
                   <Line type="monotone" dataKey="funding_rate" stroke="#8884d8" dot={false} />
                 </LineChart>
               </ResponsiveContainer>
