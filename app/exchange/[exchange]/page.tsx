@@ -57,9 +57,6 @@ export default function ExchangeDetailPage() {
                 <p className="text-sm text-muted-foreground">该交易所下所有币对的多周期资金费率</p>
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="bg-green-50 text-green-700 border-green-200 border rounded px-2 py-1 text-xs font-semibold">实时数据</span>
-            </div>
           </div>
         </div>
       </header>

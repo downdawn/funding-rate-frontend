@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { formatToGmt8 } from "@/lib/utils"
 
 const periodList = [
   { key: "hour", label: "小时" },
@@ -77,20 +78,15 @@ export default function PairDetailPage() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm dark:bg-slate-900/80 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">币对</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {symbol}（{exchange}）
-                </h1>
-                <p className="text-sm text-muted-foreground">展示该交易所下该币对的多周期聚合资金费率和历史走势</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-lg">币对</span>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="bg-green-50 text-green-700 border-green-200 border rounded px-2 py-1 text-xs font-semibold">实时数据</span>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                {symbol}（{exchange}）
+              </h1>
+              <p className="text-sm text-muted-foreground">展示该交易所下该币对的多周期聚合资金费率和历史走势</p>
             </div>
           </div>
         </div>
@@ -110,9 +106,9 @@ export default function PairDetailPage() {
               <ResponsiveContainer width="100%" height={320}>
                 <LineChart data={history} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="funding_time" tickFormatter={v => v ? String(v).slice(5, 16) : ''} />
+                  <XAxis dataKey="funding_time" tickFormatter={v => v ? formatToGmt8(v) : ''} />
                   <YAxis domain={['auto', 'auto']} tickFormatter={v => (v * 100).toFixed(3) + '%'} />
-                  <Tooltip formatter={v => (v as number * 100).toFixed(5) + '%'} labelFormatter={l => l} />
+                  <Tooltip formatter={v => (v as number * 100).toFixed(5) + '%'} labelFormatter={l => formatToGmt8(l)} />
                   <Line type="monotone" dataKey="funding_rate" stroke="#8884d8" dot={false} />
                 </LineChart>
               </ResponsiveContainer>

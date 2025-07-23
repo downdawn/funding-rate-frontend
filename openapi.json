@@ -1,0 +1,706 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "资费数据API",
+    "description": "加密货币交易所资费数据查询接口",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/funding-rates": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "查询资费数据",
+        "description": "查询资费数据\n\n- **exchange**: 交易所名称（可选）\n- **symbol**: 交易对符号（可选）\n- **start_time**: 开始时间戳（可选）\n- **end_time**: 结束时间戳（可选）\n- **limit**: 返回记录数量限制（默认100，最大1000）",
+        "operationId": "get_funding_rates_api_v1_funding_rates_get",
+        "parameters": [
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易所名称",
+              "title": "Exchange"
+            },
+            "description": "交易所名称"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易对符号",
+              "title": "Symbol"
+            },
+            "description": "交易对符号"
+          },
+          {
+            "name": "start_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "开始时间戳",
+              "title": "Start Time"
+            },
+            "description": "开始时间戳"
+          },
+          {
+            "name": "end_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "结束时间戳",
+              "title": "End Time"
+            },
+            "description": "结束时间戳"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "返回记录数量限制",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "返回记录数量限制"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingRateListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/exchanges": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "获取所有交易所列表",
+        "description": "获取所有交易所列表",
+        "operationId": "get_exchanges_api_v1_exchanges_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExchangeListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/symbols": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "获取指定交易所的交易对列表",
+        "description": "获取指定交易所的交易对列表\n\n- **exchange**: 交易所名称（必填）",
+        "operationId": "get_symbols_api_v1_symbols_get",
+        "parameters": [
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "交易所名称",
+              "title": "Exchange"
+            },
+            "description": "交易所名称"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SymbolListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/latest": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "获取最新资费数据",
+        "description": "获取指定交易所和交易对的最新资费数据\n\n- **exchange**: 交易所名称（必填）\n- **symbol**: 交易对符号（必填）",
+        "operationId": "get_latest_funding_rate_api_v1_latest_get",
+        "parameters": [
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "交易所名称",
+              "title": "Exchange"
+            },
+            "description": "交易所名称"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "交易对符号",
+              "title": "Symbol"
+            },
+            "description": "交易对符号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingRateResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/funding-rate-agg": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "查询资费聚合数据",
+        "description": "查询资费聚合数据\n- **exchange**: 交易所名称（可选）\n- **symbol**: 交易对符号（可选）\n- **period_type**: 聚合类型（可选）\n- **period_value**: 聚合周期值（可选）\n- **limit**: 返回记录数量限制（默认100，最大1000）",
+        "operationId": "get_funding_rate_agg_api_v1_funding_rate_agg_get",
+        "parameters": [
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易所名称",
+              "title": "Exchange"
+            },
+            "description": "交易所名称"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易对符号",
+              "title": "Symbol"
+            },
+            "description": "交易对符号"
+          },
+          {
+            "name": "period_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "聚合类型(hour/day/week/month/quarter/year)",
+              "title": "Period Type"
+            },
+            "description": "聚合类型(hour/day/week/month/quarter/year)"
+          },
+          {
+            "name": "period_value",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "聚合周期值",
+              "title": "Period Value"
+            },
+            "description": "聚合周期值"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "返回记录数量限制",
+              "default": 100,
+              "title": "Limit"
+            },
+            "description": "返回记录数量限制"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingRateAggListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/top-volume-funding-rate-agg": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "获取成交量前N及其资费聚合数据",
+        "operationId": "get_top_volume_funding_rate_agg_api_v1_top_volume_funding_rate_agg_get",
+        "parameters": [
+          {
+            "name": "top_n",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "前N名",
+              "default": 10,
+              "title": "Top N"
+            },
+            "description": "前N名"
+          },
+          {
+            "name": "exchange",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易所名称",
+              "title": "Exchange"
+            },
+            "description": "交易所名称"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "交易对符号",
+              "title": "Symbol"
+            },
+            "description": "交易对符号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopVolumeFundingRateAggListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "资费数据"
+        ],
+        "summary": "健康检查接口",
+        "description": "健康检查接口",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExchangeListResponse": {
+        "properties": {
+          "exchanges": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Exchanges"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exchanges"
+        ],
+        "title": "ExchangeListResponse",
+        "description": "交易所列表响应模型"
+      },
+      "FundingRateAggListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FundingRateAggResponse"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "data"
+        ],
+        "title": "FundingRateAggListResponse",
+        "description": "资费聚合数据列表响应模型"
+      },
+      "FundingRateAggResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "symbol": {
+            "type": "string",
+            "title": "Symbol"
+          },
+          "period_type": {
+            "type": "string",
+            "title": "Period Type"
+          },
+          "period_value": {
+            "type": "string",
+            "title": "Period Value"
+          },
+          "total_rate": {
+            "type": "number",
+            "title": "Total Rate"
+          },
+          "apr": {
+            "type": "number",
+            "title": "Apr"
+          },
+          "created_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Time"
+          },
+          "updated_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "exchange",
+          "symbol",
+          "period_type",
+          "period_value",
+          "total_rate",
+          "apr",
+          "created_time"
+        ],
+        "title": "FundingRateAggResponse",
+        "description": "资费聚合数据响应模型"
+      },
+      "FundingRateListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FundingRateResponse"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "data"
+        ],
+        "title": "FundingRateListResponse",
+        "description": "资费列表响应模型"
+      },
+      "FundingRateResponse": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "symbol": {
+            "type": "string",
+            "title": "Symbol"
+          },
+          "funding_rate": {
+            "type": "number",
+            "title": "Funding Rate"
+          },
+          "funding_time": {
+            "type": "string",
+            "title": "Funding Time"
+          },
+          "timestamp": {
+            "type": "integer",
+            "title": "Timestamp"
+          },
+          "created_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created Time"
+          },
+          "updated_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated Time"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "exchange",
+          "symbol",
+          "funding_rate",
+          "funding_time",
+          "timestamp",
+          "created_time"
+        ],
+        "title": "FundingRateResponse",
+        "description": "资费数据响应模型"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "SymbolListResponse": {
+        "properties": {
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Symbols"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exchange",
+          "symbols"
+        ],
+        "title": "SymbolListResponse",
+        "description": "交易对列表响应模型"
+      },
+      "TopVolumeFundingRateAggItem": {
+        "properties": {
+          "exchange": {
+            "type": "string",
+            "title": "Exchange"
+          },
+          "symbol": {
+            "type": "string",
+            "title": "Symbol"
+          },
+          "volume": {
+            "type": "number",
+            "title": "Volume"
+          },
+          "aggs": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Aggs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "exchange",
+          "symbol",
+          "volume",
+          "aggs"
+        ],
+        "title": "TopVolumeFundingRateAggItem"
+      },
+      "TopVolumeFundingRateAggListResponse": {
+        "properties": {
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TopVolumeFundingRateAggItem"
+            },
+            "type": "array",
+            "title": "Data"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total",
+          "data"
+        ],
+        "title": "TopVolumeFundingRateAggListResponse"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
