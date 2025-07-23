@@ -34,11 +34,12 @@ export async function getFundingRateAgg(params: { exchange?: string; symbol?: st
   return (await res.json()).data || []
 }
 
-export async function getTopVolumeFundingRateAgg(params: { top_n?: number, exchange?: string } = {}) {
+export async function getTopVolumeFundingRateAgg(params: { top_n?: number, exchange?: string, symbol?: string } = {}) {
   const query = new URLSearchParams()
   if (params.top_n) query.append('top_n', params.top_n.toString())
   if (params.exchange) query.append('exchange', params.exchange)
+  if (params.symbol) query.append('symbol', params.symbol)
   const res = await fetch(`${API_BASE_URL}/api/v1/top-volume-funding-rate-agg?${query.toString()}`)
   if (!res.ok) throw new Error('获取成交量TOP10聚合数据失败')
   return (await res.json()).data || []
-} 
+}

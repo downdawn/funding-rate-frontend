@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getExchanges, getSymbols, getTopVolumeFundingRateAgg } from "@/lib/api"
 import PageLayout from "@/components/page-layout"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { getRankMap, getCellBgStyle } from "@/lib/rankColor"
+import { getRankMap } from "@/lib/rankColor"
 import RankedTableCell from "@/components/RankedTableCell"
 
 const periodList = [
@@ -127,13 +127,13 @@ export default function ExchangeSearchPage() {
     })
   }
 
-  const sortedRows = getSortedRows()
-  // 通用排名map
-  const periodRankMap = getRankMap(
+  // 用useMemo优化排序和排名map
+  const sortedRows = useMemo(() => getSortedRows(), [resultRows, sortField, sortOrder])
+  const periodRankMap = useMemo(() => getRankMap(
     sortedRows,
     periodList,
     (row, key) => row.aggs?.[key]?.total_rate
-  )
+  ), [sortedRows])
 
   return (
     <PageLayout
@@ -167,7 +167,7 @@ export default function ExchangeSearchPage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
               <Label htmlFor="exchange">交易所</Label>
-              <Select value={selectedExchange} onValueChange={v => setSelectedExchange(v)}>
+              <Select value={selectedExchange} onValueChange={v => setSelectedExchange(v)} disabled={loading}>
                 <SelectTrigger>
                   <SelectValue placeholder="选择交易所" />
                 </SelectTrigger>
@@ -196,7 +196,7 @@ export default function ExchangeSearchPage() {
               <Select
                 value={selectedSymbol}
                 onValueChange={v => setSelectedSymbol(v)}
-                disabled={!selectedExchange}
+                disabled={!selectedExchange || loading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={selectedExchange ? "选择币对" : "请先选择交易所"} />
@@ -314,4 +314,4 @@ export default function ExchangeSearchPage() {
       </Card>
     </PageLayout>
   )
-} 
+}
