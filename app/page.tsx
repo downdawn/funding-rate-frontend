@@ -357,7 +357,9 @@ export default function CryptoFundingRates() {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis dataKey="time" />
                       <YAxis />
-                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <ChartTooltip>
+                        <ChartTooltipContent />
+                      </ChartTooltip>
                       <Line
                         type="monotone"
                         dataKey="rate"

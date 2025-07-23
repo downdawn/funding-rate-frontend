@@ -11,6 +11,7 @@ interface ChartConfig {
   [key: string]: {
     label: string
     color: string
+    icon?: React.ComponentType // 新增 icon 字段
   }
 }
 
@@ -83,15 +84,17 @@ const ChartLegend = RechartsPrimitive.Legend
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<"div"> &
-    Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-      hideIcon?: boolean
-      nameKey?: string
-    }
+  {
+    className?: string
+    hideIcon?: boolean
+    nameKey?: string
+    payload?: RechartsPrimitive.LegendPayload[]
+    verticalAlign?: "top" | "bottom" | "middle"
+  }
 >(({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
-  const { config } = useChart() // Declare the useChart variable
+  const { config } = useChart()
 
-  if (!payload?.length) {
+  if (!payload || !Array.isArray(payload) || payload.length === 0) {
     return null
   }
 
@@ -100,13 +103,13 @@ const ChartLegendContent = React.forwardRef<
       ref={ref}
       className={cn("flex items-center justify-center gap-4", verticalAlign === "top" ? "pb-3" : "pt-3", className)}
     >
-      {payload.map((item) => {
+      {payload.map((item: RechartsPrimitive.LegendPayload) => {
         const key = `${nameKey || item.dataKey || "value"}`
         const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
         return (
           <div
-            key={item.value}
+            key={item.value as string}
             className={cn("flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground")}
           >
             {itemConfig?.icon && !hideIcon ? (
