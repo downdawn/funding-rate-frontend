@@ -35,7 +35,7 @@ export default function RankedTableCell({ value, rankInfo, tooltip, apr, childre
             {tooltip && <TooltipContent>{tooltip}</TooltipContent>}
           </Tooltip>
           {typeof apr === 'number' && (
-            <div className="text-xs text-gray-400">APR: {(apr * 100).toFixed(2)}%</div>
+            <div className="text-xs text-black font-bold">APR: {(apr * 100).toFixed(2)}%</div>
           )}
         </>
       ) : (
