@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { getTopVolumeFundingRateAgg } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { formatVolume } from '@/lib/utils'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { getRankMap } from "@/lib/rankColor"
+import RankedTableCell from "@/components/RankedTableCell"
 
 const periodList = [
   { key: 'hour', label: '小时' },
@@ -23,6 +25,39 @@ interface ExchangeDetailTableProps {
 export default function ExchangeDetailTable({ exchange, topN = 50, symbol }: ExchangeDetailTableProps) {
   const [rows, setRows] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [sortField, setSortField] = useState<string>('volume')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  function handleSort(field: string) {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortOrder('desc')
+    }
+  }
+
+  function getSortedRows() {
+    const sorted = [...rows]
+    if (!sortField) return sorted
+    return sorted.sort((a, b) => {
+      let aValue: any, bValue: any
+      if (sortField === 'symbol') {
+        aValue = a.symbol
+        bValue = b.symbol
+        return sortOrder === 'asc'
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue))
+      } else if (sortField === 'volume') {
+        aValue = a.volume ?? 0
+        bValue = b.volume ?? 0
+      } else {
+        aValue = a.aggs?.[sortField]?.total_rate ?? -Infinity
+        bValue = b.aggs?.[sortField]?.total_rate ?? -Infinity
+      }
+      return sortOrder === 'asc' ? aValue - bValue : bValue - aValue
+    })
+  }
 
   useEffect(() => {
     if (exchange) fetchData()
@@ -46,6 +81,13 @@ export default function ExchangeDetailTable({ exchange, topN = 50, symbol }: Exc
     }
   }
 
+  const sortedRows = getSortedRows()
+  const periodRankMap = getRankMap(
+    sortedRows,
+    periodList,
+    (row, key) => row.aggs?.[key]?.total_rate
+  )
+
   return (
     <Card>
       <CardHeader>
@@ -60,15 +102,34 @@ export default function ExchangeDetailTable({ exchange, topN = 50, symbol }: Exc
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>币对</TableHead>
-                  <TableHead>成交量</TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => handleSort('symbol')}
+                  >
+                    币对
+                    {sortField === 'symbol' && (sortOrder === 'asc' ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                  </TableHead>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => handleSort('volume')}
+                  >
+                    成交量
+                    {sortField === 'volume' && (sortOrder === 'asc' ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                  </TableHead>
                   {periodList.map((p) => (
-                    <TableHead key={p.key}>{p.label}</TableHead>
+                    <TableHead
+                      key={p.key}
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort(p.key)}
+                    >
+                      {p.label}
+                      {sortField === p.key && (sortOrder === 'asc' ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((row) => (
+                {sortedRows.map((row) => (
                   <TableRow key={row.symbol}>
                     <TableCell className="font-medium text-purple-700 cursor-pointer hover:underline"
                       onClick={() => window.location.href = `/pair/${encodeURIComponent(exchange)}/${encodeURIComponent(row.symbol)}`}
@@ -77,23 +138,13 @@ export default function ExchangeDetailTable({ exchange, topN = 50, symbol }: Exc
                     </TableCell>
                     <TableCell>{formatVolume(row.volume)}</TableCell>
                     {periodList.map((p) => (
-                      <TableCell key={p.key}>
-                        {row.aggs && row.aggs[p.key] ? (
-                          <div>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <div>{(row.aggs[p.key].total_rate * 100).toFixed(5)}%</div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <div>周期: {row.aggs[p.key].period_value}</div>
-                              </TooltipContent>
-                            </Tooltip>
-                            <div className="text-xs text-gray-400">APR: {(row.aggs[p.key].apr * 100).toFixed(2)}%</div>
-                          </div>
-                        ) : (
-                          <span className="text-gray-300">-</span>
-                        )}
-                      </TableCell>
+                      <RankedTableCell
+                        key={p.key}
+                        value={row.aggs?.[p.key]?.total_rate}
+                        rankInfo={periodRankMap[row.symbol]?.[p.key]}
+                        tooltip={<div>周期: {row.aggs?.[p.key]?.period_value}</div>}
+                        apr={row.aggs?.[p.key]?.apr}
+                      />
                     ))}
                   </TableRow>
                 ))}
@@ -104,4 +155,4 @@ export default function ExchangeDetailTable({ exchange, topN = 50, symbol }: Exc
       </CardContent>
     </Card>
   )
-} 
+}

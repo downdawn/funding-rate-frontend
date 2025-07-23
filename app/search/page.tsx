@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
-import { Search } from "lucide-react"
+import { Search, ChevronDown, ChevronUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { getExchanges, getSymbols, getTopVolumeFundingRateAgg } from "@/lib/api"
 import PageLayout from "@/components/page-layout"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { getRankMap, getCellBgStyle } from "@/lib/rankColor"
+import RankedTableCell from "@/components/RankedTableCell"
 
 const periodList = [
   { key: "hour", label: "小时" },
@@ -30,6 +32,8 @@ export default function ExchangeSearchPage() {
   const [symbolLoading, setSymbolLoading] = useState(false)
   const [resultRows, setResultRows] = useState<any[]>([])
   const [queried, setQueried] = useState(false)
+  const [sortField, setSortField] = useState<string>("volume")
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc")
 
   useEffect(() => {
     fetchExchanges()
@@ -90,6 +94,46 @@ export default function ExchangeSearchPage() {
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") handleQuery()
   }
+
+  function handleSort(field: string) {
+    if (sortField === field) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+    } else {
+      setSortField(field)
+      setSortOrder("desc")
+    }
+  }
+
+  function getSortedRows() {
+    const rows = [...resultRows]
+    if (!sortField) return rows
+    return rows.sort((a, b) => {
+      let aValue: any, bValue: any
+      if (sortField === "symbol") {
+        aValue = a.symbol
+        bValue = b.symbol
+        return sortOrder === "asc"
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue))
+      } else if (sortField === "volume") {
+        aValue = a.volume ?? 0
+        bValue = b.volume ?? 0
+      } else {
+        // periodList key
+        aValue = a.aggs?.[sortField]?.total_rate ?? -Infinity
+        bValue = b.aggs?.[sortField]?.total_rate ?? -Infinity
+      }
+      return sortOrder === "asc" ? aValue - bValue : bValue - aValue
+    })
+  }
+
+  const sortedRows = getSortedRows()
+  // 通用排名map
+  const periodRankMap = getRankMap(
+    sortedRows,
+    periodList,
+    (row, key) => row.aggs?.[key]?.total_rate
+  )
 
   return (
     <PageLayout
@@ -209,10 +253,26 @@ export default function ExchangeSearchPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>币对</TableHead>
-                    <TableHead>成交量</TableHead>
+                    <TableHead
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort("symbol")}
+                    >
+                      币对
+                      {sortField === "symbol" && (sortOrder === "asc" ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                    </TableHead>
+                    <TableHead
+                      className="cursor-pointer select-none"
+                      onClick={() => handleSort("volume")}
+                    >
+                      成交量
+                      {sortField === "volume" && (sortOrder === "asc" ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                    </TableHead>
                     {periodList.map((p) => (
-                      <TableHead key={p.key}>
+                      <TableHead
+                        key={p.key}
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort(p.key)}
+                      >
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <span>{p.label}</span>
@@ -221,12 +281,13 @@ export default function ExchangeSearchPage() {
                             <div>周期：{p.label}</div>
                           </TooltipContent>
                         </Tooltip>
+                        {sortField === p.key && (sortOrder === "asc" ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
                       </TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {resultRows.map((row) => (
+                  {sortedRows.map((row) => (
                     <TableRow key={row.symbol}>
                       <TableCell className="font-medium text-purple-700 cursor-pointer hover:underline"
                         onClick={() => window.location.href = `/pair/${encodeURIComponent(selectedExchange)}/${encodeURIComponent(row.symbol)}`}
@@ -235,23 +296,13 @@ export default function ExchangeSearchPage() {
                       </TableCell>
                       <TableCell>{row.volume >= 1e9 ? (row.volume / 1e9).toFixed(2) + 'B' : row.volume >= 1e6 ? (row.volume / 1e6).toFixed(2) + 'M' : row.volume >= 1e3 ? (row.volume / 1e3).toFixed(2) + 'K' : row.volume?.toLocaleString?.() ?? '-'}</TableCell>
                       {periodList.map((p) => (
-                        <TableCell key={p.key}>
-                          {row.aggs && row.aggs[p.key] ? (
-                            <div>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <div>{(row.aggs[p.key].total_rate * 100).toFixed(5)}%</div>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <div>周期: {row.aggs[p.key].period_value}</div>
-                                </TooltipContent>
-                              </Tooltip>
-                              <div className="text-xs text-gray-400">APR: {(row.aggs[p.key].apr * 100).toFixed(2)}%</div>
-                            </div>
-                          ) : (
-                            <span className="text-gray-300">-</span>
-                          )}
-                        </TableCell>
+                        <RankedTableCell
+                          key={p.key}
+                          value={row.aggs?.[p.key]?.total_rate}
+                          rankInfo={periodRankMap[row.symbol]?.[p.key]}
+                          tooltip={<div>周期: {row.aggs?.[p.key]?.period_value}</div>}
+                          apr={row.aggs?.[p.key]?.apr}
+                        />
                       ))}
                     </TableRow>
                   ))}
