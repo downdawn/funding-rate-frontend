@@ -5,19 +5,19 @@ export function getRankMap(rows: any[], periodList: {key: string}[], valueGetter
     // 取唯一值并降序排序
     const values = Array.from(new Set(
       rows.map(row => valueGetter(row, p.key))
-        .filter(v => typeof v === 'number' && !isNaN(v))
+        .filter((v): v is number => typeof v === 'number' && !isNaN(v))
     )).sort((a, b) => b - a)
     const total = values.length
     if (total === 0) return
     // 记录每个唯一值的排名
     const valueRank: Record<string, number> = {}
-    values.forEach((v, i) => { valueRank[v] = i })
+    values.forEach((v, i) => { valueRank[v.toString()] = i })
     // 记录每个row在该周期的唯一排名
     rows.forEach(row => {
       const v = valueGetter(row, p.key)
       if (typeof v === 'number' && !isNaN(v)) {
         if (!rankMap[row.symbol]) rankMap[row.symbol] = {}
-        rankMap[row.symbol][p.key] = { rank: valueRank[v], total, value: v }
+        rankMap[row.symbol][p.key] = { rank: valueRank[v.toString()], total, value: v }
       }
     })
   })
