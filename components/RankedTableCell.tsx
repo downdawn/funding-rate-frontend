@@ -8,9 +8,11 @@ interface RankedTableCellProps extends React.TdHTMLAttributes<HTMLTableCellEleme
   rankInfo?: { rank: number, total: number }
   tooltip?: React.ReactNode
   apr?: number
+  fundingInterval?: number
+  periodType?: string
 }
 
-export default function RankedTableCell({ value, rankInfo, tooltip, apr, children, ...props }: RankedTableCellProps) {
+export default function RankedTableCell({ value, rankInfo, tooltip, apr, fundingInterval, periodType, children, ...props }: RankedTableCellProps) {
   let cellStyle = undefined
   if (rankInfo && typeof value === 'number' && value !== 0) {
     const { rank, total } = rankInfo
@@ -32,7 +34,14 @@ export default function RankedTableCell({ value, rankInfo, tooltip, apr, childre
             <TooltipTrigger asChild>
               <div>{(value * 100).toFixed(5)}%</div>
             </TooltipTrigger>
-            {tooltip && <TooltipContent>{tooltip}</TooltipContent>}
+            <TooltipContent>
+              {periodType === "hour" && fundingInterval && (
+                <div className="mb-1 text-xs text-gray-500">
+                  【{fundingInterval}h】
+                </div>
+              )}
+              {tooltip}
+            </TooltipContent>
           </Tooltip>
           {typeof apr === 'number' && (
             <div className="text-xs text-black font-bold">APR: {(apr * 100).toFixed(2)}%</div>

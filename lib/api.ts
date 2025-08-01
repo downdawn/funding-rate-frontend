@@ -43,3 +43,40 @@ export async function getTopVolumeFundingRateAgg(params: { top_n?: number, excha
   if (!res.ok) throw new Error('获取成交量TOP10聚合数据失败')
   return (await res.json()).data || []
 }
+
+// 套利机会相关接口
+export interface ArbitrageOpportunity {
+  symbol: string
+  exchange_a: string
+  rate_a: number
+  funding_interval_a: number
+  volume_a: number
+  exchange_b: string
+  rate_b: number
+  funding_interval_b: number
+  volume_b: number
+  difference_8h: number
+  annualized_arbitrage: number
+}
+
+export interface ArbitrageOpportunitiesResponse {
+  total: number
+  data: ArbitrageOpportunity[]
+}
+
+export async function getArbitrageOpportunities(params: {
+  symbol?: string
+  sort_by?: 'hedge' | 'difference'
+  time_range?: 'latest' | 'average'
+  limit?: number
+} = {}): Promise<ArbitrageOpportunitiesResponse> {
+  const query = new URLSearchParams()
+  if (params.symbol) query.append('symbol', params.symbol)
+  if (params.sort_by) query.append('sort_by', params.sort_by)
+  if (params.time_range) query.append('time_range', params.time_range)
+  if (params.limit) query.append('limit', params.limit.toString())
+  
+  const res = await fetch(`${API_BASE_URL}/api/v1/arbitrage-opportunities?${query.toString()}`)
+  if (!res.ok) throw new Error('获取套利机会数据失败')
+  return await res.json()
+}

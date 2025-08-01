@@ -16,8 +16,10 @@ export function getRankMap(rows: any[], periodList: {key: string}[], valueGetter
     rows.forEach(row => {
       const v = valueGetter(row, p.key)
       if (typeof v === 'number' && !isNaN(v)) {
-        if (!rankMap[row.symbol]) rankMap[row.symbol] = {}
-        rankMap[row.symbol][p.key] = { rank: valueRank[v.toString()], total, value: v }
+        // 使用交易所+币对作为键，如果没有交易所则只用币对
+        const key = row.exchange ? `${row.exchange}-${row.symbol}` : row.symbol
+        if (!rankMap[key]) rankMap[key] = {}
+        rankMap[key][p.key] = { rank: valueRank[v.toString()], total, value: v }
       }
     })
   })

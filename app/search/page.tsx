@@ -348,9 +348,11 @@ export default function ExchangeSearchPage() {
                         <RankedTableCell
                           key={p.key}
                           value={row.aggs?.[p.key]?.total_rate}
-                          rankInfo={periodRankMap[`${row.exchange}-${row.symbol}`]?.[p.key]}
+                          rankInfo={periodRankMap[row.exchange ? `${row.exchange}-${row.symbol}` : row.symbol]?.[p.key]}
                           tooltip={<div>周期: {row.aggs?.[p.key]?.period_value}</div>}
                           apr={row.aggs?.[p.key]?.apr}
+                          fundingInterval={row.aggs?.[p.key]?.funding_interval}
+                          periodType={p.key}
                         />
                       ))}
                     </TableRow>

@@ -11,6 +11,7 @@ const menu = [
   { label: '市场总览', path: '/' },
   { label: '热门榜单', path: '/top10' },
   { label: '资费查询', path: '/search' },
+  { label: '套利机会', path: '/arbitrage' },
 ]
 
 export default function SidebarMenuContent() {
