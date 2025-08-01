@@ -3,19 +3,15 @@ import './globals.css'
 import {
   SidebarProvider,
   Sidebar,
-  SidebarContent,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarInset
 } from '@/components/ui/sidebar'
 import SidebarMenuContent from '@/components/sidebar-menu'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: '加密资费平台 - 实时资金费率监控',
+  description: '专业的加密货币交易所资金费率监控平台，提供实时数据分析和排名',
+  generator: 'Next.js',
 }
 
 export default function RootLayout({

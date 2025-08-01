@@ -26,8 +26,9 @@ export default function ExchangeSearchPage() {
   const [symbols, setSymbols] = useState<string[]>([])
   const [exchangeSearch, setExchangeSearch] = useState("")
   const [symbolSearch, setSymbolSearch] = useState("")
-  const [selectedExchange, setSelectedExchange] = useState<string>("")
+  const [selectedExchange, setSelectedExchange] = useState<string>("all")
   const [selectedSymbol, setSelectedSymbol] = useState<string>("all")
+  const [customSymbol, setCustomSymbol] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [symbolLoading, setSymbolLoading] = useState(false)
   const [resultRows, setResultRows] = useState<any[]>([])
@@ -40,9 +41,12 @@ export default function ExchangeSearchPage() {
   }, [])
 
   useEffect(() => {
-    if (selectedExchange) fetchSymbols(selectedExchange)
-    else setSymbols([])
-    setSelectedSymbol("all")
+    if (selectedExchange && selectedExchange !== "all") {
+      fetchSymbols(selectedExchange)
+    } else {
+      setSymbols([])
+      setSelectedSymbol("all")
+    }
   }, [selectedExchange])
 
   async function fetchExchanges() {
@@ -50,11 +54,6 @@ export default function ExchangeSearchPage() {
     try {
       const data = await getExchanges()
       setExchanges(data)
-      // 优先选中binance，否则选第一个
-      if (data.length > 0) {
-        const defaultExchange = data.includes("binance") ? "binance" : data[0]
-        setSelectedExchange(defaultExchange)
-      }
     } catch {
       setExchanges([])
     } finally {
@@ -78,10 +77,21 @@ export default function ExchangeSearchPage() {
     setLoading(true)
     setQueried(true)
     try {
-      const params: any = { exchange: selectedExchange, top_n: 50 }
+      const params: any = { top_n: 50 }
+      
+      // 如果选择了特定交易所
+      if (selectedExchange && selectedExchange !== "all") {
+        params.exchange = selectedExchange
+      }
+      
+      // 如果选择了特定币对
       if (selectedSymbol && selectedSymbol !== "all") {
         params.symbol = selectedSymbol
+      } else if (customSymbol.trim()) {
+        // 如果输入了自定义币对
+        params.symbol = customSymbol.trim()
       }
+      
       const data = await getTopVolumeFundingRateAgg(params)
       setResultRows(data)
     } catch {
@@ -109,7 +119,13 @@ export default function ExchangeSearchPage() {
     if (!sortField) return rows
     return rows.sort((a, b) => {
       let aValue: any, bValue: any
-      if (sortField === "symbol") {
+      if (sortField === "exchange") {
+        aValue = a.exchange || ""
+        bValue = b.exchange || ""
+        return sortOrder === "asc"
+          ? String(aValue).localeCompare(String(bValue))
+          : String(bValue).localeCompare(String(aValue))
+      } else if (sortField === "symbol") {
         aValue = a.symbol
         bValue = b.symbol
         return sortOrder === "asc"
@@ -161,10 +177,10 @@ export default function ExchangeSearchPage() {
             <Search className="w-5 h-5 mr-2" />
             资费查询
           </CardTitle>
-          <CardDescription>选择交易所和币对进行查询</CardDescription>
+          <CardDescription>选择交易所和币对进行查询，支持跨交易所查询</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="exchange">交易所</Label>
               <Select value={selectedExchange} onValueChange={v => setSelectedExchange(v)} disabled={loading}>
@@ -181,6 +197,7 @@ export default function ExchangeSearchPage() {
                       onChange={e => setExchangeSearch(e.target.value)}
                     />
                   </div>
+                  <SelectItem value="all">全部交易所</SelectItem>
                   {exchanges
                     .filter((exchange) => exchange.toLowerCase().includes(exchangeSearch.toLowerCase()))
                     .map((exchange) => (
@@ -193,42 +210,55 @@ export default function ExchangeSearchPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="symbol">币对</Label>
-              <Select
-                value={selectedSymbol}
-                onValueChange={v => setSelectedSymbol(v)}
-                disabled={!selectedExchange || loading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={selectedExchange ? "选择币对" : "请先选择交易所"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <div className="flex items-center px-3 pb-2">
-                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                    <input
-                      className="flex h-8 w-full rounded-md bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
-                      placeholder="搜索币对..."
-                      value={symbolSearch}
-                      onChange={e => setSymbolSearch(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                    />
-                  </div>
-                  <SelectItem value="all">全部币对</SelectItem>
-                  {symbolLoading ? (
-                    <SelectItem value="__loading" disabled>加载中...</SelectItem>
-                  ) : (
-                    symbols
-                      .filter((symbol) => symbol.toLowerCase().includes(symbolSearch.toLowerCase()))
-                      .map((symbol) => (
-                        <SelectItem key={symbol} value={symbol}>
-                          {symbol}
-                        </SelectItem>
-                      ))
-                  )}
-                </SelectContent>
-              </Select>
+              {selectedExchange === "all" ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="直接输入币对名称 (如: BTCUSDT) - 支持跨交易所查询"
+                    value={customSymbol}
+                    onChange={e => setCustomSymbol(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                </div>
+              ) : (
+                <Select
+                  value={selectedSymbol}
+                  onValueChange={v => setSelectedSymbol(v)}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="选择币对" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <div className="flex items-center px-3 pb-2">
+                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                      <input
+                        className="flex h-8 w-full rounded-md bg-transparent py-1 text-sm outline-none placeholder:text-muted-foreground"
+                        placeholder="搜索币对..."
+                        value={symbolSearch}
+                        onChange={e => setSymbolSearch(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                      />
+                    </div>
+                    <SelectItem value="all">全部币对</SelectItem>
+                    {symbolLoading ? (
+                      <SelectItem value="__loading" disabled>加载中...</SelectItem>
+                    ) : (
+                      symbols
+                        .filter((symbol) => symbol.toLowerCase().includes(symbolSearch.toLowerCase()))
+                        .map((symbol) => (
+                          <SelectItem key={symbol} value={symbol}>
+                            {symbol}
+                          </SelectItem>
+                        ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="flex items-end">
-              <Button onClick={handleQuery} disabled={loading} className="w-full">
+              <Button onClick={handleQuery} disabled={loading} className="w-full h-10">
                 {loading ? "查询中..." : "查询数据"}
               </Button>
             </div>
@@ -238,7 +268,12 @@ export default function ExchangeSearchPage() {
       <Card>
         <CardHeader>
           <CardTitle>币对资金费率</CardTitle>
-          <CardDescription>展示该交易所下所有币对的多周期资金费率</CardDescription>
+          <CardDescription>
+            {selectedExchange === "all" 
+              ? "展示所有交易所的币对资金费率" 
+              : `展示${selectedExchange}交易所的币对资金费率`
+            }
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -253,6 +288,15 @@ export default function ExchangeSearchPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    {selectedExchange === "all" && (
+                      <TableHead
+                        className="cursor-pointer select-none"
+                        onClick={() => handleSort("exchange")}
+                      >
+                        交易所
+                        {sortField === "exchange" && (sortOrder === "asc" ? <ChevronUp className="inline w-4 h-4 ml-1" /> : <ChevronDown className="inline w-4 h-4 ml-1" />)}
+                      </TableHead>
+                    )}
                     <TableHead
                       className="cursor-pointer select-none"
                       onClick={() => handleSort("symbol")}
@@ -288,9 +332,14 @@ export default function ExchangeSearchPage() {
                 </TableHeader>
                 <TableBody>
                   {sortedRows.map((row) => (
-                    <TableRow key={row.symbol}>
+                    <TableRow key={`${row.exchange}-${row.symbol}`}>
+                      {selectedExchange === "all" && (
+                        <TableCell className="font-medium text-blue-700">
+                          {row.exchange}
+                        </TableCell>
+                      )}
                       <TableCell className="font-medium text-purple-700 cursor-pointer hover:underline"
-                        onClick={() => window.location.href = `/pair/${encodeURIComponent(selectedExchange)}/${encodeURIComponent(row.symbol)}`}
+                        onClick={() => window.location.href = `/pair/${encodeURIComponent(row.exchange || selectedExchange)}/${encodeURIComponent(row.symbol)}`}
                       >
                         {row.symbol}
                       </TableCell>
@@ -299,7 +348,7 @@ export default function ExchangeSearchPage() {
                         <RankedTableCell
                           key={p.key}
                           value={row.aggs?.[p.key]?.total_rate}
-                          rankInfo={periodRankMap[row.symbol]?.[p.key]}
+                          rankInfo={periodRankMap[`${row.exchange}-${row.symbol}`]?.[p.key]}
                           tooltip={<div>周期: {row.aggs?.[p.key]?.period_value}</div>}
                           apr={row.aggs?.[p.key]?.apr}
                         />
